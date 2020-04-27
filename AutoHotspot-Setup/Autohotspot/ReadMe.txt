@@ -21,7 +21,8 @@ In addition the Hotspot SSID and Password can be changed, new WiFi networks can 
 
 To use the installer:
 
-Download the AutoHotspot-Setup.tar.xz archive from (page link here)
+Download the AutoHotspot-Setup.tar.xz archive from
+curl "https://www.raspberryconnect.com/images/hsinstaller/AutoHotspot-Setup.tar.gz" -o AutoHotspot-Setup.tar.gz
 Unarchive the file to the curent folder using the command
 tar -xzvf AutoHotspot-Setup.tar.xz
 If you are using the Desktop then right click on the AutoHotspot-Setup.tar.xz and select Extract Here
