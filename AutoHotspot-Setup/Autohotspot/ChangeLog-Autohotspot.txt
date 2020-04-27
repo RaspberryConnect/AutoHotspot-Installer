@@ -1,0 +1,9 @@
+Change log for autohotspot and autohotspotN scripts
+
+version 0.95-61-N/HS-I & version 0.96-N/HS
+
+-Added error checking for status "Invalid exchange (-52)
+-If the wpa_supplicant.conf file was created in windows then it can contain Cr characters. These caused the ssid not to match so the hotspot was generated.
+SSID matching now filters the Cr.
+-Script output of local SSID's and BSS's in list to be read easier.
+-From Raspbian Buster hostapd is masked by default. If the Autohotspot setup has been done before the first system update, hostapd can get remasked. As this may happen in future updates the Autohotspot/N scripts check for Masked & enabled hostapd and dnsmasq services and disables/stops them before the script chooses network or hotspot.   

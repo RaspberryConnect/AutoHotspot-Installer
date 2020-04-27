@@ -1,0 +1,3 @@
+Change log for autohotspot-setup.sh  
+
+0.71 First release 19 Apr 2020

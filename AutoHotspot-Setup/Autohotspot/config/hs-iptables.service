@@ -1,0 +1,11 @@
+[Unit]
+Description=Activate IPtables for Hotspot
+After=network-pre.target
+Before=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/etc/iptables-hs
+
+[Install]
+WantedBy=multi-user.target

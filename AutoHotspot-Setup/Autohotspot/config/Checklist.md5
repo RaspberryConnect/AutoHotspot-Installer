@@ -1,0 +1,16 @@
+ef41924efbed1bb6e0de487a2fe02f85  autohotspot-direct
+b87b8b6fa19445d0e65045d8e271f456  autohotspot-direct.service
+d7a25f23930a755404342194335451dd  autohotspotN
+bb7fd111c1baa11fdee18699041a2516  autohotspot-Net.service
+557bfbf9d19f7d4a8d8fd19e40a435c5  dhcpcd-autohs.conf
+696c6076b3475717f08059cc65080030  dhcpcd-remove.conf
+26e78fb29affea8022a9c989f6475ca7  dhcpcd-SHS.conf
+41ace870877f786773244a178f26cefe  dhcpcd-SHSN.conf
+8789bd5d1674e65d18c21c3bcffdfb0a  dnsmasqAHS.conf
+807885886aa6a40f30d4c9d480b80c84  dnsmasqAHSN.conf
+25e3152c11d0860428bcb51b25e33441  dnsmasqSHS.conf
+50d80f635b02b8ce58bfa8f260eba7e7  hostapd
+46634b98cc27980c4130b9fa9d568de9  hostapd.conf
+d0f09b7f89ef821edaef58e7b91b313a  hs-iptables.service
+c82e7473bb1490cf4702aaf7b669bb33  interfaces
+fbb31822a27f4acca55acdb8f52d538c  iptables-hs.txt
