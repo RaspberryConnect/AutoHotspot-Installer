@@ -1,3 +1,7 @@
-Change log for autohotspot-setup.sh  
+Change log for autohotspot-setup.sh
+
+0.72
+Updated improved handeling of Windows special characters for updating the SSID and Password
+Fixed issue where not all added comment lines were removed from dhcpcd.conf file on uninstall
 
 0.71 First release 19 Apr 2020
