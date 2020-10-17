@@ -3,7 +3,7 @@
 #This installer can be shared but all references to RaspberryConnect.com in this file
 #and other files used by the installer should remain in place. 
 
-#Installer version 0.73 (25 Apr 2020)
+#Installer version 0.72 (17 Oct 2020)
 #Installer for AutoHotspot, AutohotspotN scripts and Static Hotspot setup.
 #Autohotspot: a script that allows the Raspberry Pi to switch between Network Wifi and
 #a hotspot either at bootup or with a timer without a reboot.
@@ -212,15 +212,24 @@ dnsmasq_config()
 }
 dhcpcd_config()
 {
+	#Make backup if not done
+	if [ ! "/etc/dhcpcd-RCbackup.conf" ] ;then
+		mv "/etc/dhcpcd.conf" "/etc/dhcpcd-RCbackup.conf"
+	fi
 	if [ "$opt" = "AHN" ] || [ "$opt" = "AHD" ] ;then
+		#use backup for Auto scripts to retain any custon Network Config like static ip's
+		if [ ! "/etc/dhcpcd-RCbackup.conf" ] ;then 
+			cp "/etc/dhcpcd-RCbackup.conf" "/etc/dhcpcd.conf"
+		fi
 		grep -vxf "${cpath}/config/dhcpcd-remove.conf" "/etc/dhcpcd.conf" > "${cpath}/config/Ndhcpcd.conf"
 		cat "${cpath}/config/dhcpcd-autohs.conf" >> "${cpath}/config/Ndhcpcd.conf"
 		mv "${cpath}/config/Ndhcpcd.conf" "/etc/dhcpcd.conf"
 	elif [ "$opt" = "SHS" ]; then
+		#use clean dhcpcd.conf for static hotspot, backup will be restored on removal /etc/dhcpcd-RCbackup.conf 
+		mv "${cpath}/config/dhcpcd-default.conf" "/etc/dhcpcd.conf"
 		grep -vxf "${cpath}/config/dhcpcd-remove.conf" "/etc/dhcpcd.conf" > "${cpath}/config/Ndhcpcd.conf"
 		cat "${cpath}/config/dhcpcd-SHSN.conf" >> "${cpath}/config/Ndhcpcd.conf"
 		mv "${cpath}/config/Ndhcpcd.conf" "/etc/dhcpcd.conf"
-	
 	fi
 }
 
@@ -332,8 +341,13 @@ remove()
 	fi
 	auto_script #Remove Autohotspot Scripts
 	#Reset DHCPCD.conf
-	grep -vxf "${cpath}/config/dhcpcd-remove.conf" "/etc/dhcpcd.conf" > "${cpath}/config/Ndhcpcd.conf"
-	mv "${cpath}/config/Ndhcpcd.conf" "/etc/dhcpcd.conf"
+	if [ -f "/etc/dhcpcd-RCbackup.conf" ] ;then #restore backup
+		mv "/etc/dhcpcd-RCbackup.conf" "/etc/dhcpcd.conf"
+	else #or remove edits if no backup
+		echo "Removing config from dhcpcd.conf"
+		grep -vxf "${cpath}/config/dhcpcd-remove.conf" "/etc/dhcpcd.conf" > "${cpath}/config/Ndhcpcd.conf"
+		mv "${cpath}/config/Ndhcpcd.conf" "/etc/dhcpcd.conf"
+	fi
 	hs_routing #remove routing for Static HS
 	sysctl #remove port forwarding
 	interface #restore backup of interfaces fle
@@ -464,8 +478,7 @@ updatessid()
 		exit
 	fi
 
-	IFS="," wpassid=$(awk '/ssid="/{ print $0 }' /etc/wpa_supplicant/wpa_supplicant.conf | awk -F'ssid=' '{ print $2 }' ORS=',' | sed 's/\"/''/g' | sed 's/,$//')
-	wpassid=$(echo "${wpassid//[$'\r\n']}")
+	IFS="," wpassid=$(awk '/ssid="/{ print $0 }' /etc/wpa_supplicant/wpa_supplicant.conf | awk -F'ssid=' '{ print $2 }' | sed 's/\r//g'| awk 'BEGIN{ORS=","} {print}' | sed 's/\"/''/g' | sed 's/,$//')
 	ssids=($wpassid)
 	if [[ ! " ${ssids[@]} " =~ " $1 " ]]; then
 		echo "Add New Wifi Network"
