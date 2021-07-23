@@ -1,5 +1,11 @@
 Change log for autohotspot-setup.sh
 
+0.73
+Added indents to the child functions in the Forceswitch function.
+In dhcpcd.conf for the static Hostspot setup, moved nohooks below the interface wlan0 line
+Now only wlan0 is blocked from using wpa_supplicant.conf. Wlan1 can be used to connect to a network but will
+not give hotspot connected devices access to the internet. The pi will have network access through wlan1.
+
 0.72
 Updated improved handeling of Windows special characters for updating the SSID and Password
 Fixed issue where not all added comment lines were removed from dhcpcd.conf file on uninstall
