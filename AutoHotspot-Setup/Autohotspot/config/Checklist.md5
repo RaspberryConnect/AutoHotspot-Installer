@@ -4,7 +4,7 @@ b87b8b6fa19445d0e65045d8e271f456  autohotspot-direct.service
 bb7fd111c1baa11fdee18699041a2516  autohotspot-Net.service
 557bfbf9d19f7d4a8d8fd19e40a435c5  dhcpcd-autohs.conf
 ace02c8a941b75e2c922791e4a30b32c  dhcpcd-remove.conf
-26e78fb29affea8022a9c989f6475ca7  dhcpcd-SHS.conf
+77c4e9c1a5a8fdbbb3950f0f0428aabb  dhcpcd-SHS.conf
 41ace870877f786773244a178f26cefe  dhcpcd-SHSN.conf
 8789bd5d1674e65d18c21c3bcffdfb0a  dnsmasqAHS.conf
 807885886aa6a40f30d4c9d480b80c84  dnsmasqAHSN.conf
