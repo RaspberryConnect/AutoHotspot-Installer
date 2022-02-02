@@ -1,11 +1,11 @@
 #!/bin/bash
-#version 0.961-N/HS-I
+#version 0.97-N/HS-I
 
 #You may share this script on the condition a reference to RaspberryConnect.com 
 #must be included in copies or derivatives of this script. 
 
-#Network Wifi & Hotspot with Internet
-#A script to switch between a wifi network and an Internet routed Hotspot
+#Network Wifi & Hotspot with Network/Internet
+#A script to switch between a wifi network and an Network/Internet routed Hotspot
 #A Raspberry Pi with a network port required for Internet in hotspot mode.
 #Works at startup or with a seperate timer or manually without a reboot
 #Other setup required find out more at
@@ -37,14 +37,24 @@ ssidsmac=("${ssids[@]}" "${mac[@]}") #combines ssid and MAC for checking
 
 createAdHocNetwork()
 {
+    echo "Autohotspot by RaspberryConnect.com"
     echo "Creating Hotspot"
     ip link set dev "$wifidev" down
     ip a add 192.168.50.5/24 brd + dev "$wifidev"
     ip link set dev "$wifidev" up
     dhcpcd -k "$wifidev" >/dev/null 2>&1
-    iptables -t nat -A POSTROUTING -o "$ethdev" -j MASQUERADE
-    iptables -A FORWARD -i "$ethdev" -o "$wifidev" -m state --state RELATED,ESTABLISHED -j ACCEPT
-    iptables -A FORWARD -i "$wifidev" -o "$ethdev" -j ACCEPT
+    if iptables 2>&1 | grep 'no command specified' ; then
+    	iptables -t nat -A POSTROUTING -o "$ethdev" -j MASQUERADE
+    	iptables -A FORWARD -i "$ethdev" -o "$wifidev" -m state --state RELATED,ESTABLISHED -j ACCEPT
+    	iptables -A FORWARD -i "$wifidev" -o "$ethdev" -j ACCEPT
+    elif nft 2>&1 | grep 'no command specified' ; then
+        nft add table inet ap
+	nft add chain inet ap rthrough { type nat hook postrouting priority 0 \; policy accept \; }
+	nft add rule inet ap rthrough oifname "$ethdev" masquerade
+	nft add chain inet ap fward { type filter hook forward priority 0 \; policy accept \; }
+	nft add rule inet ap fward iifname "$ethdev" oifname "$wifidev" ct state established,related accept
+	nft add rule inet ap fward iifname "$wifidev" oifname "$ethdev" accept
+    fi
     systemctl start dnsmasq
     systemctl start hostapd
     echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -52,12 +62,17 @@ createAdHocNetwork()
 
 KillHotspot()
 {
+    echo "Autohotspot by RaspberryConnect.com"
     echo "Shutting Down Hotspot"
     ip link set dev "$wifidev" down
     systemctl stop hostapd
     systemctl stop dnsmasq
-    iptables -D FORWARD -i "$ethdev" -o "$wifidev" -m state --state RELATED,ESTABLISHED -j ACCEPT
-    iptables -D FORWARD -i "$wifidev" -o "$ethdev" -j ACCEPT
+    if iptables 2>&1 | grep 'no command specified' ; then
+        iptables -D FORWARD -i "$ethdev" -o "$wifidev" -m state --state RELATED,ESTABLISHED -j ACCEPT
+        iptables -D FORWARD -i "$wifidev" -o "$ethdev" -j ACCEPT
+    elif nft 2>&1 | grep 'no command specified' ; then
+        nft delete table inet ap
+    fi
     echo 0 > /proc/sys/net/ipv4/ip_forward
     ip addr flush dev "$wifidev"
     ip link set dev "$wifidev" up
@@ -201,3 +216,4 @@ else #ssid or MAC address not in range
               createAdHocNetwork
        fi
 fi
+

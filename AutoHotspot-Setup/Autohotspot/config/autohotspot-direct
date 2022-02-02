@@ -1,8 +1,8 @@
 #!/bin/bash
 #version 0.961-N/HS
 
-#You may share this script on the condition a reference to RaspberryConnect.com 
-#must be included in copies or derivatives of this script. 
+#You may share this script on the condition all references to RaspberryConnect.com 
+#must be included in copies or derivatives of this script.  
 
 #A script to switch between a wifi network and a non internet routed Hotspot
 #Works at startup or with a seperate timer or manually without a reboot
@@ -34,6 +34,7 @@ ssidsmac=("${ssids[@]}" "${mac[@]}") #combines ssid and MAC for checking
 
 createAdHocNetwork()
 {
+    echo "Autohotspot by RaspberryConnect.com"
     echo "Creating Hotspot"
     ip link set dev "$wifidev" down
     ip a add 10.0.0.5/24 brd + dev "$wifidev"
@@ -45,6 +46,7 @@ createAdHocNetwork()
 
 KillHotspot()
 {
+    echo "Autohotspot by RaspberryConnect.com"
     echo "Shutting Down Hotspot"
     ip link set dev "$wifidev" down
     systemctl stop hostapd

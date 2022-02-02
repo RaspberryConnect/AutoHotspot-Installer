@@ -1,5 +1,9 @@
 Change log for autohotspot and autohotspotN scripts
 
+version 0.97-N/HS-I
+added nfttables support for PiOS 11 Bullseye or if nftables are used on Buster. 
+
+
 version 0.961-N/HS-I & version 0.961-N/HS
 -Added improved handeling of windows end of line special characters in wpa_supplicant.conf from users who create the file on windows
 -Modify ssid handeling for checking. If the ssid contained bash command character treat them as a string and not a command.

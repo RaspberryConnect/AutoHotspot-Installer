@@ -1,0 +1,14 @@
+flush ruleset
+
+table inet ap {
+	chain routethrough {
+		type nat hook postrouting priority filter; policy accept;
+		oifname "eth0" masquerade
+	}
+
+	chain fward {
+		type filter hook forward priority filter; policy accept;
+		iifname "eth0" oifname "wlan0" ct state established,related accept
+		iifname "wlan0" oifname "eth0" accept
+	}
+}

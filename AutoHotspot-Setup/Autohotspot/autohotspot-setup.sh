@@ -1,23 +1,23 @@
 #!/bin/bash
-#RaspberryConnect.com
+#RaspberryConnect.com - Graeme Richards
 #This installer can be shared but all references to RaspberryConnect.com in this file
 #and other files used by the installer should remain in place. 
 
-#Installer version 0.72 (17 Oct 2020)
-#Installer for AutoHotspot, AutohotspotN scripts and Static Hotspot setup.
+#Installer version 0.74 (29 Jan 2022)
+#Installer for AutoHotspot, AutohotspotN scripts and Static Access Point setup.
 #Autohotspot: a script that allows the Raspberry Pi to switch between Network Wifi and
-#a hotspot either at bootup or with a timer without a reboot.
+#an access point either at bootup or with seperate timer without a reboot.
 
 #This installer script will alter network settings and may overwrite existing settings if allowed.
 #/etc/hostapd/hostapd.conf (backup old), /etc/dnsmasq.conf (backup old), modifies /etc/dhcpcd.conf (modifies)
 #/etc/sysctl.conf (modifies), /etc/network/interfaces (backup old & removes any network entries)
-#Currently iptables are used, you will receive a warning if nftables active active.
-#If you are using nftables please only use option 2, Autohotspot-Non Internet script until a future update.
+#PiOS 10 Buster and older use ip tables, PiOS 11 Bullseye uses nftables. 
+#If nftables are detected as installed on the older PiOS then it will be used. 
 
-#Force Hotspot or Network Wifi option will only work if either autohotspot is installed and active.
+#Force Access Point or Network Wifi option will only work if either autohotspot is installed and active.
 
 
-#Check for Raspbian and version.
+#Check for PiOS or Raspbian and version.
 osver=($(cat /etc/issue))
 cpath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 opt="X"
@@ -25,12 +25,12 @@ vhostapd="N" vdnsmasq="N" autoH="N"
 autoserv="N" iptble="N" nftble="N"
 
 if [ "${osver[0]}" != 'Raspbian' ]; then
-	echo "This AutoHotspot installer is only for the OS Raspbian on the Raspberry Pi"
+	echo "This AutoHotspot installer is only for the PiOS & Raspbian on the Raspberry Pi"
 	exit 1
 elif [ "${osver[2]}" -ge 10 ]; then
-	echo 'Raspbian Version' "${osver[2]}"
+	echo 'OS Version' "${osver[2]}"
 elif [ "${osver[2]}" -lt 8 ];then
-	echo "The version of Raspbian is too old for the Autohotspot script"
+	echo "The version of PiOS or Raspbian is too old for the Autohotspot script"
 	echo "Version 8 'Jessie' is the minimum requirement"
 fi
 
@@ -80,10 +80,10 @@ check_reqfiles()
 check_wificountry()
 {
 	#echo "Checking WiFi country"
-	wpa=($(cat "/etc/wpa_supplicant/wpa_supplicant.conf" | grep "country="))
+	wpa=($(cat "/etc/wpa_supplicant/wpa_supplicant.conf" | tr -d '\r' | grep "country="))
 	if [ -z ${wpa: -2} ] || [[ ${wpa: -2} == *"="* ]];then
-		echo "The WiFi country has not been set. This is required for the hotspot setup."
-		echo "Please update Raspbian with the wifi country using the command 'sudo raspi-config' and choose the localisation menu"
+		echo "The WiFi country has not been set. This is required for the access point setup."
+		echo "Please update PiOS with the wifi country using the command 'sudo raspi-config' and choose the localisation menu"
 		echo "From the desktop this can be done in the menu Preferences - Raspberry Pi Configuration - Localisation" 
 		echo "Once done please try again."
 		echo ""
@@ -91,8 +91,6 @@ check_wificountry()
 		read
 	fi
 }
-
-
 
 hostapd_config()
 {
@@ -146,8 +144,8 @@ hostapd_config()
 		fi
 	fi
 	#check country code for hostapd.conf
-	wpa=($(cat "/etc/wpa_supplicant/wpa_supplicant.conf" | grep "country="))
-	hapd=($(cat "/etc/hostapd/hostapd.conf" | grep "country_code="))
+	wpa=($(cat "/etc/wpa_supplicant/wpa_supplicant.conf" | tr -d '\r' | grep "country="))
+	hapd=($(cat "/etc/hostapd/hostapd.conf" | tr -d '\r' | grep "country_code="))
 	if [[ ! ${wpa: -2} == ${hapd: -2} ]] ; then
 		echo "Changing Hostapd Wifi country to " ${wpa: -2} 
 		sed -i -e "/country_code=/c\country_code=${wpa: -2}" /etc/hostapd/hostapd.conf
@@ -226,7 +224,7 @@ dhcpcd_config()
 		mv "${cpath}/config/Ndhcpcd.conf" "/etc/dhcpcd.conf"
 	elif [ "$opt" = "SHS" ]; then
 		#use clean dhcpcd.conf for static hotspot, backup will be restored on removal /etc/dhcpcd-RCbackup.conf 
-		mv "${cpath}/config/dhcpcd-default.conf" "/etc/dhcpcd.conf"
+		cp "${cpath}/config/dhcpcd-default.conf" "/etc/dhcpcd.conf"
 		grep -vxf "${cpath}/config/dhcpcd-remove.conf" "/etc/dhcpcd.conf" > "${cpath}/config/Ndhcpcd.conf"
 		cat "${cpath}/config/dhcpcd-SHSN.conf" >> "${cpath}/config/Ndhcpcd.conf"
 		mv "${cpath}/config/Ndhcpcd.conf" "/etc/dhcpcd.conf"
@@ -282,18 +280,31 @@ hs_routing()
 			fi
 			
 		elif [ "$nftble" = "Y" ] ; then
-			echo "future feature"
-		
+			if [ ! -d '/etc/nftables' ] ; then
+				mkdir /etc/nftables
+			fi
+			if ! cat '/etc/nftables.conf' | grep 'nft-stat-ap.nft' ; then
+				cp "${cpath}/config/nft-stat-ap.txt" "/etc/nftables/nft-stat-ap.nft"
+				chmod +x "/etc/nftables/nft-stat-ap.nft"
+				sed -i '$ a include "/etc/nftables/nft-stat-ap.nft"' "/etc/nftables.conf"
+				if systemctl -all list-unit-files nftables.service | grep "nftables.service disabled" ;then
+					systemctl enable nftables >/dev/null 2>&1
+				fi
+			fi	
 		fi
 	elif [ "$opt" = "REM" ] || [ "$opt" = "AHN" ] || [ "$opt" = "AHD" ] ; then
-		if systemctl is-active hs-iptables | grep -w "active" ;then
-			systemctl disable hs-iptables.service
-		fi
-		if test -f "/etc/systemd/system/hs-iptables.service" ; then
-			rm /etc/systemd/system/hs-iptables.service
-		fi
-		if test -f "/etc/iptables-hs" ; then
-			rm /etc/iptables-hs
+		if [ "$iptble" = "Y" ] ; then
+			if systemctl is-active hs-iptables | grep -w "active" ;then
+				systemctl disable hs-iptables.service
+			fi
+			if test -f "/etc/systemd/system/hs-iptables.service" ; then
+				rm /etc/systemd/system/hs-iptables.service
+			fi
+			if test -f "/etc/iptables-hs" ; then
+				rm /etc/iptables-hs
+			fi
+		elif [ "$nftble" = "Y" ] ; then
+			sed -i '/nft-stat-ap/d' '/etc/nftables.conf'			
 		fi
 	fi
 }
@@ -358,17 +369,17 @@ Hotspotssid()
 {
 	#Change the Default Hotspot SSID and Password
 	if  [ ! -f "/etc/hostapd/hostapd.conf" ] ;then
-		echo "A hotspot is not installed. No Password to change"
+		echo "An Access Point is not installed. No Password to change"
 		echo "press enter to continue"
 		read
 		menu
 	fi
 	HSssid=($(cat "/etc/hostapd/hostapd.conf" | grep '^ssid='))
 	HSpass=($(cat "/etc/hostapd/hostapd.conf" | grep '^wpa_passphrase='))
-	echo "Change the Hotspot's SSID and Password. press enter to keep existing settings"
+	echo "Change the Access Point's SSID and Password. press enter to keep existing settings"
 	echo "The current SSID is:" "${HSssid:5}"
 	echo "The current SSID Password is:" "${HSpass:15}"
-	echo "Enter the new Hotspots SSID:"
+	echo "Enter the new Access Point SSID:"
 	read ssname
 	echo "Enter the hotspots new password. Minimum 8 characters"
 	read sspwd
@@ -379,10 +390,10 @@ Hotspotssid()
 		echo "The Hotspot SSID is"  ${HSssid: 5}
 	fi
 	if [ ! -z $sspwd ] && [ ${#sspwd} -ge 8 ] ;then
-		echo "Changing Hotspot Password to:" "$sspwd"
+		echo "Changing Access Point Password to:" "$sspwd"
 		sed -i -e "/^wpa_passphrase=/c\wpa_passphrase=$sspwd" /etc/hostapd/hostapd.conf
 	else
-		echo "The Hotspot Password is:"  ${HSpass: 15}
+		echo "The Access Point Password is:"  ${HSpass: 15}
 	fi
 	echo ""
 	echo "The new setup will be available next time the hotspot is started"
@@ -394,9 +405,12 @@ Hotspotssid()
 setupssid()
 {
 	echo "Searching for local WiFi connection"
-	echo "Connect to a new WiFi network or change the password for an existing one in range"
+	echo "Add a new WiFi network or change the password for an existing one in range"
 	echo "For Wifi networks where only a password is required."
 	echo "This will not work where a username and password is required"
+	echo ""
+	echo "If the Pi is currently in Access Point mode with a Autohotspot"
+	echo "then use option 6 to Force the Pi to the newly added Wifi Network"
 	ct=0; j=0 ; lp=0
 	wfselect=()
 
@@ -512,71 +526,18 @@ updatessid()
 
 forceswitch()
 {
-	if [ ! -f "/etc/systemd/system/autohotspot.service" ] ;then
-		echo "No Autohotspot script installed, unable to continue"
-		echo "press enter to continue"
-		read
-		menu
-	fi
-	Aserv=($(cat /etc/systemd/system/autohotspot.service | grep "ExecStart="))
-	wi=($(cat ${Aserv: 10} | grep wifidev=))
-	eth=($(cat ${Aserv: 10} | grep ethdev=))
-
-	wifidev=${wi[0]: 9:-1} #wifi device name from active autohotspot/N script
-	ethdev=${eth[0]: 8:-1} #Ethernet port to use with IP tables
-
-createAdHocNetwork_N() #for Internet routed Hotspot
-{
-    #receive IP as $1
-    echo "Creating Hotspot with Internet"
-    ip link set dev "$wifidev" down
-    ip a add $1 brd + dev "$wifidev"
-    ip link set dev "$wifidev" up
-    dhcpcd -k "$wifidev" >/dev/null 2>&1
-    iptables -t nat -A POSTROUTING -o "$ethdev" -j MASQUERADE
-    iptables -A FORWARD -i "$ethdev" -o "$wifidev" -m state --state RELATED,ESTABLISHED -j ACCEPT
-    iptables -A FORWARD -i "$wifidev" -o "$ethdev" -j ACCEPT
-    systemctl start dnsmasq
-    systemctl start hostapd
-    echo 1 > /proc/sys/net/ipv4/ip_forward
-}
-
-createAdHocNetwork_D() #For non Internet Routed Hotspot
-{
-    echo "Creating Hotspot direct - no Internet"
-    ip link set dev "$wifidev" down
-    ip a add $1 brd + dev "$wifidev"
-    ip link set dev "$wifidev" up
-    dhcpcd -k "$wifidev" >/dev/null 2>&1
-    systemctl start dnsmasq
-    systemctl start hostapd
-}
-
-get_HS_IP() #get ip address from current active hotspot script
-{
-    #add check that the service is enabled, otherwise exit
-    Aserv=($(cat /etc/systemd/system/autohotspot.service | grep "ExecStart=")) #which hotspot is active?
-    if [ ${Aserv: -4} = "spot" ];then #Direct
-		ipline=($(cat /usr/bin/autohotspot | grep "ip a add"))
-		createAdHocNetwork_D "${ipline[3]}" 
-    elif [ ${Aserv: -4} = "potN" ];then #Internet
-		ipline=($(cat /usr/bin/autohotspotN | grep "ip a add"))
-		createAdHocNetwork_N "${ipline[3]}"
-    else
-		echo "The Autohotspot is disabled or not installed"
-		echo "unable to force a switch."
-		echo "Press enter to continue"
-		read
-		menu
-    fi
-}
-
+if [ ! -f "/etc/systemd/system/autohotspot.service" ] ;then
+	echo "No Autohotspot script installed, unable to continue"
+	echo "press enter to continue"
+	read
+	menu
+fi
 #Create Hotspot or connect to valid wifi networks
 echo 0 > /proc/sys/net/ipv4/ip_forward #deactivate ip forwarding
 
 if systemctl status hostapd | grep "(running)" >/dev/null 2>&1
 then
-    echo "Hotspot already active"
+    echo "The access point is already active"
     echo "Switching to Network Wifi if it is available"
     echo "this takes about 20 seconds to complete checks"
 	systemctl restart autohotspot.service
@@ -593,18 +554,72 @@ then
 	get_HS_IP
 fi
 }
+##
+createAdHocNetwork_N() #for Internet routed Hotspot for Force Switch
+{
+	#receive IP as $1
+	echo "Creating Hotspot with Internet"
+	ip link set dev "$wifidev" down
+	ip a add $1 brd + dev "$wifidev"
+	ip link set dev "$wifidev" up
+	dhcpcd -k "$wifidev" >/dev/null 2>&1
+	if iptables 2>&1 | grep 'no command specified' >/dev/null 2>&1 ; then
+		iptables -t nat -A POSTROUTING -o "$ethdev" -j MASQUERADE
+		iptables -A FORWARD -i "$ethdev" -o "$wifidev" -m state --state RELATED,ESTABLISHED -j ACCEPT
+		iptables -A FORWARD -i "$wifidev" -o "$ethdev" -j ACCEPT
+	elif nft 2>&1 | grep 'no command specified' >/dev/null 2>&1 ; then
+		nft add table inet ap
+		nft add chain inet ap rthrough { type nat hook postrouting priority 0 \; policy accept \; }
+		nft add rule inet ap rthrough oifname "$ethdev" masquerade
+		nft add chain inet ap fward { type filter hook forward priority 0 \; policy accept \; }
+		nft add rule inet ap fward iifname "$ethdev" oifname "$wifidev" ct state established,related accept
+		nft add rule inet ap fward iifname "$wifidev" oifname "$ethdev" accept
+	fi
+	systemctl start dnsmasq
+	systemctl start hostapd
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+}
+
+createAdHocNetwork_D() #For non Internet Routed Hotspot for Force Switch
+{
+	echo "Creating WiFi access point with no network/internet for connected devices"
+	echo "through eth0"
+	ip link set dev "$wifidev" down
+	ip a add $1 brd + dev "$wifidev"
+	ip link set dev "$wifidev" up
+	dhcpcd -k "$wifidev" >/dev/null 2>&1
+	systemctl start dnsmasq
+	systemctl start hostapd
+}
+
+get_HS_IP() #get ip address from current active hotspot script for Force Switch
+{
+	if [ ${Aserv: -4} = "spot" ];then #Direct
+		ipline=($(cat /usr/bin/autohotspot | grep "ip a add"))
+		createAdHocNetwork_D "${ipline[3]}" 
+	elif [ ${Aserv: -4} = "potN" ];then #Internet
+		ipline=($(cat /usr/bin/autohotspotN | grep "ip a add"))
+		createAdHocNetwork_N "${ipline[3]}"
+	else
+		echo "The Autohotspot is disabled or not installed"
+		echo "unable to force a switch."
+		echo "Press enter to continue"
+		read
+		menu
+	fi
+}
 
 display_HS_IP() #get ip address from current active hotspot script
 {
     Aserv=($(cat /etc/systemd/system/autohotspot.service 2>/dev/null| grep "ExecStart="))  #which hotspot is active?
     if [ ${Aserv: -4} = "spot" ] >/dev/null 2>&1  ;then #Direct
 		ipline=($(cat /usr/bin/autohotspot | grep "ip a add")) 
-		echo "Hotspot IP Address for SSH and VNC: ${ipline[3]: :-3}" 
+		echo "Access Point IP Address for SSH and VNC: ${ipline[3]: :-3}" 
     elif [ ${Aserv: -4} = "potN" ] >/dev/null 2>&1 ;then #Internet
 		ipline=($(cat /usr/bin/autohotspotN | grep "ip a add")) 
-		echo "Hotspot IP Address for SSH and VNC: ${ipline[3]: :-3}"
+		echo "Access Point IP Address for SSH and VNC: ${ipline[3]: :-3}"
     else #Static Hotspot default IP
-		echo "Hotspot IP Address for ssh and VNC: 192.168.50.10"
+		echo "Access Point IP Address for ssh and VNC: 192.168.50.10"
     fi
 }
 
@@ -622,6 +637,17 @@ go()
 		echo "run at boot or manually otherwise use the Force to.... option"
 		echo "if the hotspot is active"
 	elif [ "$opt" = "FOR" ] ;then
+		if [ ! -f "/etc/systemd/system/autohotspot.service" ] ;then
+			echo "No Autohotspot script installed, unable to continue"
+			echo "press enter to continue"
+			read
+			menu
+		fi
+		Aserv=($(cat /etc/systemd/system/autohotspot.service | grep "ExecStart="))
+		wi=($(cat ${Aserv: 10} | grep wifidev=))
+		eth=($(cat ${Aserv: 10} | grep ethdev=))
+		wifidev=${wi[0]: 9:-1} #wifi device name from active autohotspot/N script
+		ethdev=${eth[0]: 8:-1} #Ethernet port to use with IP tables
 		forceswitch
 	elif [ "$opt" = "HSS" ] ;then
 		Hotspotssid
@@ -653,25 +679,26 @@ menu()
 clear
 until [ "$select" = "8" ]; do
 	echo "Raspberryconnect.com Autohotspot installation and setup"
-	echo "For installation or switching between hotspot types"
-	echo " or uninstall the hotspot back to standard Pi wifi"
+	echo "for installation or switching between access point types"
+	echo "or uninstall the access point back to standard Pi wifi"
 	echo ""
 	echo "Autohotspot Net = connects to a known wifi network in range,"
-	echo "otherwise creates a Raspberry Pi Hotspot with internet if an"
-	echo "Ethernet cable is connected, Wlan0, Eth0. Pi's 3,3+,4"
+	echo "otherwise automatically creates a Raspberry Pi access point with network/internet access if an"
+	echo "ethernet cable is connected. Uses wlan0, eth0. Pi's 3,3+,4"
 	echo ""
-	echo "Autohotspot NO Net = as above but connected devices to the hotspot"
-	echo "will NOT get internet if an Ethernet cable is connected. Rpi Zero W"
+	echo "Autohotspot NO Net = as above but connected devices to the access point"
+	echo "will NOT get a network/internet connection if an ethernet cable is connected. Rpi Zero W & RPi Zero 2"
 	echo ""
-	echo "Permanent Hotspot = permanent hotspot with net access for connected devices"
+	echo "Permanent Access Point = permanent access point with network/internet access from eth0 for"
+	echo "connected devices"
 	echo ""
-	echo " 1 = Install Autohotspot with Internet for Connected Devices"
-	echo " 2 = Install Autohotspot with No Internet for connected devices"
-	echo " 3 = Install a Permanent Hotspot with Internet for connected devices"
-	echo " 4 = Uninstall Autohotspot or Permanent Hotspot"
-	echo " 5 = Add or Change a WiFi network (SSID)"
-	echo " 6 = Autohotspot: Force to a Hotspot or Force to Network if SSID in Range"
-	echo " 7 = Change the Hotspots SSID and Password"
+	echo " 1 = Install Autohotspot with eth0 access for Connected Devices"
+	echo " 2 = Install Autohotspot with No eth0 for connected devices"
+	echo " 3 = Install a Permanent Access Point with eth0 access for connected devices"
+	echo " 4 = Uninstall Autohotspot or permanent access point"
+	echo " 5 = Add a new wifi network to the Pi (SSID) or update the password for an existing one."
+	echo " 6 = Autohotspot: Force to an access point or connect to WiFi network if a known SSID is in range"
+	echo " 7 = Change the access points SSID and password"
 	echo " 8 = Exit"
 	echo ""
 	echo -n "Select an Option:"
@@ -690,16 +717,6 @@ until [ "$select" = "8" ]; do
 done
 }
 
-check_installed #check system and status
-if [ $nftble = "Y" ]; then
-	echo "The Internet Hotspots scripts use iptables. nftables is enabled on this system."
-	echo "It is not recommended you use iptables and nftables together."
-	echo "A nftables version will be available in the next update"
-	echo ""
-	echo "You can use the 'Autohotspot with NO Internet...' version of the script. Option 2 in the menus"
-	echo -n "Press a key to continue"
-	read
-fi
 check_reqfiles
 check_installed
 check_wificountry
