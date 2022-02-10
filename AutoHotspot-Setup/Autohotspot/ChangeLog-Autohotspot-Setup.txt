@@ -1,5 +1,8 @@
 Change log for autohotspot-setup.sh
 
+0.74-1
+added a debian to the OS detection for PiOS 64, with detection for dhcpcd incase a non PiOS version of Debian is running.
+
 0.74
 added nft table support for PiOS Bullseye
 fixed clipped country code in hostapd.conf if wpa_supplicant created on Windows

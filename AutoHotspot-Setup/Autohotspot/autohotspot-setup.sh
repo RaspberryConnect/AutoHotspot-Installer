@@ -3,7 +3,7 @@
 #This installer can be shared but all references to RaspberryConnect.com in this file
 #and other files used by the installer should remain in place. 
 
-#Installer version 0.74 (29 Jan 2022)
+#Installer version 0.74-1 (9 Feb 2022)
 #Installer for AutoHotspot, AutohotspotN scripts and Static Access Point setup.
 #Autohotspot: a script that allows the Raspberry Pi to switch between Network Wifi and
 #an access point either at bootup or with seperate timer without a reboot.
@@ -24,7 +24,7 @@ opt="X"
 vhostapd="N" vdnsmasq="N" autoH="N"
 autoserv="N" iptble="N" nftble="N"
 
-if [ "${osver[0]}" != 'Raspbian' ]; then
+if [ "${osver[0]}" != 'Raspbian' ] && [ "${osver[0]}" != 'Debian' ]; then
 	echo "This AutoHotspot installer is only for the PiOS & Raspbian on the Raspberry Pi"
 	exit 1
 elif [ "${osver[2]}" -ge 10 ]; then
@@ -32,6 +32,15 @@ elif [ "${osver[2]}" -ge 10 ]; then
 elif [ "${osver[2]}" -lt 8 ];then
 	echo "The version of PiOS or Raspbian is too old for the Autohotspot script"
 	echo "Version 8 'Jessie' is the minimum requirement"
+fi
+if [ "${osver[0]}" == 'Debian' ]; then
+	if ! systemctl -all list-unit-files dhcpcd.service | grep "dhcpcd.service enabled" ;then
+		echo "Debian OS detected"
+		echo "dhcpcd is not the default DHCP client"
+		echo "This script is intended for the Raspberry Pi OS"
+		echo "and requires dhcpcd to be the default DHCP client"
+		exit 1
+	fi
 fi
 
 check_installed()
