@@ -8,8 +8,8 @@ This script is for installing a Raspberry Pi WiFi setup where the Pi will connec
 This can also be run manually or with a timer to switch between a WiFi network or a WifI access point without a reboot.
 
 There are two setups available:
-* 1: Network/Internet access available for connected devices when an ethernet cable is connected for the Raspberry Pi's 3A,3B,3B+ & 4. For Rapberry Pi's A,B, B+,& 2 if an usb Wifi adapter is used.
-* 2: No internet access for connected devices. Designed for the Raspberry Pi Zero W or other Raspberry PI's where only a direct connection to the PI from a phone, tablet or Laptop is required.
+* Network/Internet access available for connected devices when an ethernet cable is connected for the Raspberry Pi's 3A,3B,3B+ & 4. For Rapberry Pi's A,B, B+,& 2 if an usb Wifi adapter is used.
+* No internet access for connected devices. Designed for the Raspberry Pi Zero W or other Raspberry PI's where only a direct connection to the PI from a phone, tablet or Laptop is required.
 
 There is also a setup for permanent access point with network/internet access from eth0 for WiFi connected devices.
 
@@ -61,27 +61,43 @@ You will presented with a menu with these options
 
 In these options, Options 1-4 determine the overall type of your installation. Options 5-7 allow changing of passwords and testing.
 
+# Main installation options
+
 ## Option 1: Install Autohotspot with eth0 access for Connected Devices 
 
 Once installed and after a reboot the Raspberry Pi will connect to a router that has previously been connected to and is listed in /etc/wpa_supplicant/wpa_supplicant.conf. If no router is in range then it will generate a WiFi access point.
-This will have an SSID of RPiHotspot and password of 1234567890
-Use option 7 to change the access point password and also the SSID if required
+* This will have an SSID of RPiHotspot and password of 1234567890.
+* Use option 7 to change the access point password and also the SSID if required.
 If an ethernet cable is connected to the Pi with access to the internet then it will allow devices connected to the access point to connect to the internet or local network.
 Once a connection to the access point has been made you can access the Raspberry Pi via ssh & VNC with
 * `ssh pi@192.168.50.5`
 * vnc: 192.168.50.5::5900
 * for webservers use http://192.168.50.5/
 
+The option installs
+```
+/usr/bin/autohotspotN
+```
+As noted above, this setup provides network/Internet access for connected devices 
+* when an ethernet cable is connected for the Raspberry Pi's 3A,3B,3B+ & 4,
+* Or, for Rapberry Pi's A,B, B+,& 2, if a usb Wifi adapter is used.
+
 ## Option 2: Install Autohotspot with No eth0 for connected devices
 
 This option is similar to option 1 but connected devices have no network/internet connection if an ethernet cable is connected. 
 The Pi itself can use the eth0 connection and also be accessed from a device on the etho network.
-This has been designed so you can access only the Pi from a Laptop, tablet or phone.
-The access point SSID will be RPiHotspot with a password of 1234567890
+* This has been designed so you can access only the Pi from a Laptop, tablet or phone.
+* The access point SSID will be RPiHotspot with a password of 1234567890
 Once a connection to the access point has been made you can access the Raspberry Pi via ssh & VNC with
 * `ssh pi@10.0.0.5`
 * vnc: 10.0.0.5::5900
 * for webservers use http://10.0.0.5/
+
+The option installs
+```
+/usr/bin/autohotspot
+```
+As noted above, this provides no internet access for connected devices. The mode is designed for the Raspberry Pi Zero W or other Raspberry PI's where only a direct connection to the PI from a phone, tablet or Laptop is required.
 
 ## Option 3: Install a Permanent Access Point with eth0 access for connected devices
 
@@ -101,6 +117,8 @@ This requires changing the references in the iptables or fftables files from eth
 
 This will disable the setup of any of the three setups and return the Raspberry Pi to default Wifi settings.
 Hostapd & dnsmasq will not be uninstalled just disabled.
+
+# Configuration options
 
 ## Option 5: Add a new wifi network to the Pi (SSID) or update the password for an existing one.
 
@@ -124,8 +142,9 @@ The password must be at least 8 characters.
 Exit the script.
 
 
-/etc/network/interfaces file:
-many older access points and network setup guides online add entries to the /etc/network/interfaces file. This file is depreciated in Raspbian & PiOS. Any entry in this file is not compatible with these setups. This installer backup and remove any entries found in this file. They will be restored if the uninstall option is used.
+# Note regarding `/etc/network/interfaces` file
+
+Many older access points and network setup guides online add entries to the `/etc/network/interfaces` file. This file is depreciated in Raspbian & PiOS. Any entry in this file is not compatible with these setups. This installer backup and remove any entries found in this file. They will be restored if the uninstall option is used.
 
 RaspberryConnect.com
 
