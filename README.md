@@ -61,7 +61,7 @@ You will presented with a menu with these options
 
 In these options, Options 1-4 determine the overall type of your installation. Options 5-7 allow changing of passwords and testing.
 
-# Option 1: Install Autohotspot with eth0 access for Connected Devices 
+## Option 1: Install Autohotspot with eth0 access for Connected Devices 
 
 Once installed and after a reboot the Raspberry Pi will connect to a router that has previously been connected to and is listed in /etc/wpa_supplicant/wpa_supplicant.conf. If no router is in range then it will generate a WiFi access point.
 This will have an SSID of RPiHotspot and password of 1234567890
@@ -72,7 +72,7 @@ Once a connection to the access point has been made you can access the Raspberry
 * vnc: 192.168.50.5::5900
 * for webservers use http://192.168.50.5/
 
-# Option 2: Install Autohotspot with No eth0 for connected devices
+## Option 2: Install Autohotspot with No eth0 for connected devices
 
 This option is similar to option 1 but connected devices have no network/internet connection if an ethernet cable is connected. 
 The Pi itself can use the eth0 connection and also be accessed from a device on the etho network.
@@ -83,7 +83,7 @@ Once a connection to the access point has been made you can access the Raspberry
 * vnc: 10.0.0.5::5900
 * for webservers use http://10.0.0.5/
 
-# Option 3: Install a Permanent Access Point with eth0 access for connected devices
+## Option 3: Install a Permanent Access Point with eth0 access for connected devices
 
 This is for a permanent WiFi access point with network/internet access for connected devices.
 The Raspberry Pi will only have network and internet access when an ethernet cable is connected.
@@ -97,29 +97,29 @@ This requires changing the references in the iptables or fftables files from eth
 * /etc/iptables-hs    (PiOS version 10 or lower , Buster)
 * /etc/nftables/nft-stat-ap.nft (PiOS version 11 or higher, Bullseye)
 
-# Option 4: Uninstall Autohotspot or Permanent Access Point
+## Option 4: Uninstall Autohotspot or Permanent Access Point
 
 This will disable the setup of any of the three setups and return the Raspberry Pi to default Wifi settings.
 Hostapd & dnsmasq will not be uninstalled just disabled.
 
-# Option 5: Add a new wifi network to the Pi (SSID) or update the password for an existing one.
+## Option 5: Add a new wifi network to the Pi (SSID) or update the password for an existing one.
 
 If you are using either of the autohotspot setups in access point mode and wish to connect to a local WiFi network. You will be unable to scan for any networks as the desktop wifi option will be disabled, shown as red crosses. You can manually add the details to /etc/wpa_supplicant/wpa_supplicant.conf if you know them. 
 This option will allow you to scan for local WiFi networks and update the Pi. If you then reboot or use the Force... option 6 ,see below. 
 This option only works for WiFi networks where only a password is required. If a username is required this will not work.
 
-# Option 6: Autohotspot: Force to an access point or Force to WiFi network if a known SSID is in range
+## Option 6: Autohotspot: Force to an access point or Force to WiFi network if a known SSID is in range
 
 This option is only for the Autohotspot setups.
 If you are at home and connected to your home network but would like to use the hotspot. This option will force the pi to access point mode and will ignore your home network untill the next reboot. If you use this option again while in access point mode, it will attempt to connect to a known WiFi network. This will go back to the access point if no valid WiFi network is found or there is a connection issue.
  
-# Option 7: Change the Pi's access point SSID and Password
+## Option 7: Change the Pi's access point SSID and Password
 
 By default the access point SSID is RPiHotSpot with a password of 1234567890. Use this option to change either or both SSID and Password.
 You will be prompted to change both but if you make no entry and press enter the existing setting will be kept.
 The password must be at least 8 characters. 
 
-# Option 8: Exit
+## Option 8: Exit
 
 Exit the script.
 
