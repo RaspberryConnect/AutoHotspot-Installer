@@ -63,6 +63,8 @@ In these options, Options 1-4 determine the overall type of your installation. O
 
 # Main installation options
 
+The main installation options are Options 1-4.
+
 ## Option 1: Install Autohotspot with eth0 access for Connected Devices 
 
 Once installed and after a reboot the Raspberry Pi will connect to a router that has previously been connected to and is listed in /etc/wpa_supplicant/wpa_supplicant.conf. If no router is in range then it will generate a WiFi access point.
@@ -119,6 +121,8 @@ This will disable the setup of any of the three setups and return the Raspberry 
 Hostapd & dnsmasq will not be uninstalled just disabled.
 
 # Configuration options
+
+Options 5 and 7 allow changing of passwords. Option 6 allows 'force switch' between hotspot and WiFi network, useful for testing.
 
 ## Option 5: Add a new wifi network to the Pi (SSID) or update the password for an existing one.
 
