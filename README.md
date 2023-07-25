@@ -21,7 +21,7 @@ For more information and for the manual setup's see:
 This script will install any of these three setups or allow you to change between setup types.
 In additionm the Access Point SSID and Password can be changed, new WiFi networks can be added to the Raspberry PI while in access point mode. The Pi can be forced between WiFi Network mode and Access Point mode without a reboot. Also there is an uninstaller.
 
-To use the installer:
+# Using the installer
 
 Download the AutoHotspot-Setup.tar.xz archive from
 ```
