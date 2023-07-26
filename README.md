@@ -146,10 +146,37 @@ The password must be at least 8 characters.
 Exit the script.
 
 
-# Note regarding `/etc/network/interfaces` file
+# Note 
+
+# Regarding `/etc/network/interfaces` file
 
 Many older access points and network setup guides online add entries to the `/etc/network/interfaces` file. This file is depreciated in Raspbian & PiOS. Any entry in this file is not compatible with these setups. This installer backup and remove any entries found in this file. They will be restored if the uninstall option is used.
 
+# The service is just for automatic start at boot time.
+
+The system service just facilitates automatic start at boot time. It doesn't do any checking while the configuration is running. Note that, unfortunately, a systemd timer doesn't work with the script so it can't be repeated with that. Therefore, another script or `cron` is the best way to rerun the script at intervals.
+
+# Suppose I wanted the script, but without running it at boot time? 
+
+In other words, only run the script as needed. Would the correct process be to install the script (e.g. Options 1 or 2, as required), and then disable the service?
+
+To do this install and disable the service. Though wpa_supplicant will be disabled in `/etc/dhcpcd.conf` so you will get no wifi network connection. To reactivate it comment out the line `nohook wpa_supplicant`. If you re-enable the service then that needs to be un-commented.
+
+This process will stop the script running at boot. You can then manually run `sudo /usr/bin/autohotspotN` (Option 1) / `sudo /usr/bin/autohotspot` (Option 2). You can run the service `sudo systemctl start autohotspot` as this will also run the autohotspot script once on demand.
+
+# Can I use `ifup` and `ifdown`?
+
+`ifup` and `ifdown` use the `/network/interfaces` file i believe which is depreciated on the PiOS so you will need to use
+`ip link set dev wlan0 down` and `ip link set dev wlan0 up`.
+
+However if you bring wlan0 down while the access point is running, you will need to bring wlan0 up and then run the autohotspot straight after as hostapd will not restart on it's own.
+
+You can bring wlan0 down and up while connected to a wifi network ok with `ip link set dev wlan0 down / up`
+
+if it does not come back up properly then rebind dhcpcd with `sudo dhcpcd -n wlan0`
+which will do the trick.
+
+
 RaspberryConnect.com
 
-Jan 29th 2022
+Jan 29th 2022, with updates 26 July 2023
