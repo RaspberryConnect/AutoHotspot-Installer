@@ -154,7 +154,14 @@ Many older access points and network setup guides online add entries to the `/et
 
 # The service is just for automatic start at boot time.
 
-The system service just facilitates automatic start at boot time. It doesn't do any checking while the configuration is running. Note that, unfortunately, a systemd timer doesn't work with the script so it can't be repeated with that. Therefore, another script or `cron` is the best way to rerun the script at intervals.
+The system service just facilitates automatic start at boot time. It doesn't do any checking while the configuration is running. Note that, unfortunately, a systemd timer doesn't work with the script so it can't be repeated with that. Therefore, another script or `cron` is the best way to rerun the script at intervals. 
+
+For running a timer you simply add `/usr/bin/autohotspot` or `/usr/bin/autohotspotN` to the root crontab. E.g. to run every 5 minutes:
+```
+*/5 * * * * sudo /usr/bin/autohotspot >/dev/null 2>&1
+```
+For more detailed instructions, see here: https://www.raspberryconnect.com/projects/65-raspberrypi-hotspot-accesspoints/158-raspberry-pi-auto-wifi-hotspot-switch-direct-connection.
+
 
 # Suppose I wanted the script, but without running it at boot time? 
 
