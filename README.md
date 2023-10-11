@@ -1,6 +1,7 @@
 RaspberryConnect.com
 This installer script and the autohotspot & autohotspotN scripts can be shared and modified but all references to RaspberryConnect.com must be kept in place.
 
+For use with PiOS 11 Bullseye and lower. Not compatible with PiOS 12 Bookworm. A new Bookworm version will be available soon. 
 
 # AutoHotspot Setups
 
