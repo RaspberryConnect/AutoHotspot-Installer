@@ -1,5 +1,12 @@
 Change log for autohotspot-setup.sh
 
+0.74-2
+if the OS image is installed with the "Raspberry pi Imager" then the country is not set in wpa_supplicant.conf. This was used to set the correct country in hostapd.conf for the hotspot setup.
+This has caused the hostapd country to be blank which will cause connection issues.
+The country will now be defaulted to GB if not found in wpa_supplicant.conf.
+Correct /etc/hostapd/hostapd.conf manually or uninstall the the access point with option 4, set the wifi localisation in raspberry pi configuration. (if it is correct change to another country, ok, then change back to your country to update wpa_supplicant.conf)
+then reinstall autohotspot.
+
 0.74-1
 added a debian to the OS detection for PiOS 64, with detection for dhcpcd incase a non PiOS version of Debian is running.
 

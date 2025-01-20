@@ -3,7 +3,7 @@
 #This installer can be shared but all references to RaspberryConnect.com in this file
 #and other files used by the installer should remain in place. 
 
-#Installer version 0.74-1 (9 Feb 2022)
+#Installer version 0.74-2 (19 Jan 2025)
 #Installer for AutoHotspot, AutohotspotN scripts and Static Access Point setup.
 #Autohotspot: a script that allows the Raspberry Pi to switch between Network Wifi and
 #an access point either at bootup or with seperate timer without a reboot.
@@ -34,7 +34,7 @@ elif [ "${osver[2]}" -lt 8 ];then
 	echo "Version 8 'Jessie' is the minimum requirement"
 fi
 if [ "${osver[0]}" == 'Debian' ]; then
-	if ! systemctl -all list-unit-files dhcpcd.service | grep "dhcpcd.service enabled" ;then
+	if ! systemctl -all list-unit-files dhcpcd.service | grep "dhcpcd.service enabled" >/dev/null 2>&1;then
 		echo "Debian OS detected"
 		echo "dhcpcd is not the default DHCP client"
 		echo "This script is intended for the Raspberry Pi OS"
@@ -132,19 +132,19 @@ hostapd_config()
 	if [ "$opt" = "AHN" ] || [ "$opt" = "AHD" ]; then
 		#For Autohotspots
 		echo "Unmask & Disable Hostapd"
-		if systemctl -all list-unit-files hostapd.service | grep "hostapd.service masked" ;then
+		if systemctl -all list-unit-files hostapd.service | grep "hostapd.service masked" >/dev/null 2>&1;then
 			systemctl unmask hostapd.service >/dev/null 2>&1
 		fi
-		if systemctl -all list-unit-files hostapd.service | grep "hostapd.service enabled" ;then
+		if systemctl -all list-unit-files hostapd.service | grep "hostapd.service enabled" >/dev/null 2>&1;then
 			systemctl disable hostapd.service >/dev/null 2>&1
 		fi
 	elif [ "$opt" = "SHS" ]; then
 		#for Static Hotspot
 		echo "Unmask and enable hostapd"
-		if systemctl -all list-unit-files hostapd.service | grep "hostapd.service masked" ;then
+		if systemctl -all list-unit-files hostapd.service | grep "hostapd.service masked" >/dev/null 2>&1; then
 			systemctl unmask hostapd >/dev/null 2>&1
 		fi
-		if systemctl -all list-unit-files hostapd.service | grep "hostapd.service disabled" ;then
+		if systemctl -all list-unit-files hostapd.service | grep "hostapd.service disabled" >/dev/null 2>&1; then
 			systemctl enable hostapd >/dev/null 2>&1
 		fi
 	elif [ "$opt" = "REM" ]; then
@@ -155,7 +155,11 @@ hostapd_config()
 	#check country code for hostapd.conf
 	wpa=($(cat "/etc/wpa_supplicant/wpa_supplicant.conf" | tr -d '\r' | grep "country="))
 	hapd=($(cat "/etc/hostapd/hostapd.conf" | tr -d '\r' | grep "country_code="))
-	if [[ ! ${wpa: -2} == ${hapd: -2} ]] ; then
+	if [ -z ${wpa: -2} ] || [[ ${wpa: -2} == *"="* ]] ;then
+		#if no country set in wpa_supplicant use the template country
+		echo "wpa_supplicant.conf has no country code set."
+		echo " Setting up country GB default in hostapd.conf"
+	elif [[ ! ${wpa: -2} == ${hapd: -2} ]] ;then
 		echo "Changing Hostapd Wifi country to " ${wpa: -2} 
 		sed -i -e "/country_code=/c\country_code=${wpa: -2}" /etc/hostapd/hostapd.conf
 	fi
