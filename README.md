@@ -28,11 +28,11 @@ In additionm the Access Point SSID and Password can be changed, new WiFi network
 
 Download the AutoHotspot-Setup.tar.xz archive from
 ```
-curl "https://www.raspberryconnect.com/images/hsinstaller/Autohotspot-Setup.tar.xz" -o AutoHotspot-Setup.tar.xz
+curl "https://www.raspberryconnect.com/images/hsinstaller/AutoHotspot-Setup.tar.xz" -o AutoHotspot-Setup.tar.xz
 ```
 Unarchive the file to the curent folder using the command
 ```
-tar -xzvf AutoHotspot-Setup.tar.xz
+tar -xvJf AutoHotspot-Setup.tar.xz
 ```
 If you are using the Desktop then right click on the AutoHotspot-Setup.tar.xz and select Extract Here
 
